@@ -1,0 +1,24 @@
+name: qupath-rs
+on:
+  push:
+    paths: ["qupath-rs/**", ".github/workflows/qupath-rs.yml"]
+  pull_request:
+    paths: ["qupath-rs/**", ".github/workflows/qupath-rs.yml"]
+jobs:
+  check:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: qupath-rs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: qupath-rs
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --release
+      - run: scripts/check-sizes.sh

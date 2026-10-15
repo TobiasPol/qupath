@@ -1,0 +1,676 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "501dc53b-b983-437b-9610-514c684bb477",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11000,
+              8000
+            ],
+            [
+              11000,
+              9500
+            ],
+            [
+              12500,
+              9500
+            ],
+            [
+              12500,
+              8000
+            ],
+            [
+              11000,
+              8000
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "objectType": "annotation",
+        "name": "Region A",
+        "classification": {
+          "name": "Tumor",
+          "color": [
+            200,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "6cee63a4-5035-42b0-9f31-0fb12ae672a9",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11425.95,
+              8621.98
+            ],
+            [
+              11435.95,
+              8661.99
+            ],
+            [
+              11467.96,
+              8661.99
+            ],
+            [
+              11473.96,
+              8649.98
+            ],
+            [
+              11475.96,
+              8639.98
+            ],
+            [
+              11483.96,
+              8625.98
+            ],
+            [
+              11483.96,
+              8591.97
+            ],
+            [
+              11473.96,
+              8585.97
+            ],
+            [
+              11461.95,
+              8585.97
+            ],
+            [
+              11447.95,
+              8589.97
+            ],
+            [
+              11435.95,
+              8613.98
+            ],
+            [
+              11425.95,
+              8621.98
+            ]
+          ]
+        ]
+      },
+      "nucleusGeometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11435.95,
+              8631.98
+            ],
+            [
+              11437.95,
+              8645.98
+            ],
+            [
+              11443.95,
+              8651.98
+            ],
+            [
+              11457.95,
+              8651.98
+            ],
+            [
+              11465.96,
+              8641.98
+            ],
+            [
+              11465.96,
+              8625.98
+            ],
+            [
+              11469.96,
+              8617.98
+            ],
+            [
+              11469.96,
+              8605.98
+            ],
+            [
+              11461.95,
+              8597.98
+            ],
+            [
+              11455.95,
+              8597.98
+            ],
+            [
+              11447.95,
+              8603.98
+            ],
+            [
+              11443.95,
+              8619.98
+            ],
+            [
+              11435.95,
+              8631.98
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "objectType": "cell",
+        "classification": {
+          "name": "Positive",
+          "color": [
+            200,
+            50,
+            50
+          ]
+        },
+        "measurements": {
+          "Nucleus: Area \u00b5m^2": 81.0256118774414,
+          "Nucleus: Length \u00b5m": 36.157283782958984,
+          "Nucleus: Circularity": 0.7788262963294983,
+          "Nucleus: Solidity": 0.9473684430122375,
+          "Nucleus: Hematoxylin OD mean": 0.36303094029426575,
+          "Nucleus: Hematoxylin OD sum": 131.41720581054688,
+          "Nucleus: Hematoxylin OD std dev": 0.19218549132347107,
+          "Nucleus: Hematoxylin OD max": 0.7285584807395935,
+          "Nucleus: Hematoxylin OD min": 0.09115887433290482,
+          "Nucleus: Hematoxylin OD range": 0.6373996138572693,
+          "Nucleus: DAB OD mean": 0.2200833261013031,
+          "Nucleus: DAB OD sum": 79.670166015625,
+          "Nucleus: DAB OD std dev": 0.2474154829978943,
+          "Nucleus: DAB OD max": 0.7587473392486572,
+          "Nucleus: DAB OD min": 0.010798790492117405,
+          "Nucleus: DAB OD range": 0.7479485273361206,
+          "Cell: Area \u00b5m^2": 208.56593322753906,
+          "Cell: Length \u00b5m": 56.2166862487793,
+          "Cell: Circularity": 0.8293211460113525,
+          "Cell: Solidity": 0.971461832523346,
+          "Cell: Hematoxylin OD mean": 0.2187829166650772,
+          "Cell: Hematoxylin OD std dev": 0.17095448076725006,
+          "Cell: Hematoxylin OD max": 0.7285584807395935,
+          "Cell: Hematoxylin OD min": 0.08717586100101471,
+          "Cytoplasm: Hematoxylin OD mean": 0.12044434249401093,
+          "Cell: DAB OD mean": 0.12075094878673553,
+          "Cell: DAB OD std dev": 0.17767414450645447,
+          "Cell: DAB OD max": 0.7587473392486572,
+          "Cell: DAB OD min": 0.010798790492117405,
+          "Cytoplasm: DAB OD mean": 0.05303282290697098,
+          "Nucleus/Cell area ratio": 0.4053751528263092
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "21643451-90d1-43ed-a173-b32e0645b964",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12312.09,
+              9394.1
+            ],
+            [
+              12312.09,
+              9408.1
+            ],
+            [
+              12316.09,
+              9416.11
+            ],
+            [
+              12316.09,
+              9442.11
+            ],
+            [
+              12332.09,
+              9458.11
+            ],
+            [
+              12354.1,
+              9458.11
+            ],
+            [
+              12362.1,
+              9454.11
+            ],
+            [
+              12364.1,
+              9422.11
+            ],
+            [
+              12368.1,
+              9416.11
+            ],
+            [
+              12370.1,
+              9404.1
+            ],
+            [
+              12364.1,
+              9388.1
+            ],
+            [
+              12360.1,
+              9384.1
+            ],
+            [
+              12360.1,
+              9378.1
+            ],
+            [
+              12356.1,
+              9374.1
+            ],
+            [
+              12354.1,
+              9376.1
+            ],
+            [
+              12320.09,
+              9380.1
+            ],
+            [
+              12312.09,
+              9394.1
+            ]
+          ]
+        ]
+      },
+      "nucleusGeometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12330.09,
+              9398.1
+            ],
+            [
+              12330.09,
+              9408.1
+            ],
+            [
+              12332.09,
+              9410.1
+            ],
+            [
+              12332.09,
+              9436.11
+            ],
+            [
+              12336.09,
+              9440.11
+            ],
+            [
+              12344.09,
+              9442.11
+            ],
+            [
+              12350.09,
+              9440.11
+            ],
+            [
+              12354.1,
+              9434.11
+            ],
+            [
+              12354.1,
+              9422.11
+            ],
+            [
+              12360.1,
+              9408.1
+            ],
+            [
+              12360.1,
+              9398.1
+            ],
+            [
+              12352.09,
+              9388.1
+            ],
+            [
+              12340.09,
+              9386.1
+            ],
+            [
+              12334.09,
+              9390.1
+            ],
+            [
+              12330.09,
+              9398.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "objectType": "cell",
+        "classification": {
+          "name": "Positive",
+          "color": [
+            200,
+            50,
+            50
+          ]
+        },
+        "measurements": {
+          "Nucleus: Area \u00b5m^2": 80.65049743652344,
+          "Nucleus: Length \u00b5m": 36.16217803955078,
+          "Nucleus: Circularity": 0.7750108242034912,
+          "Nucleus: Solidity": 0.9541420340538025,
+          "Nucleus: Hematoxylin OD mean": 0.3672010898590088,
+          "Nucleus: Hematoxylin OD sum": 131.09078979492188,
+          "Nucleus: Hematoxylin OD std dev": 0.1885921061038971,
+          "Nucleus: Hematoxylin OD max": 0.6973309516906738,
+          "Nucleus: Hematoxylin OD min": 0.10292771458625793,
+          "Nucleus: Hematoxylin OD range": 0.5944032669067383,
+          "Nucleus: DAB OD mean": 0.22144953906536102,
+          "Nucleus: DAB OD sum": 79.05748748779297,
+          "Nucleus: DAB OD std dev": 0.24846328794956207,
+          "Nucleus: DAB OD max": 0.7526748180389404,
+          "Nucleus: DAB OD min": 0.015871072188019753,
+          "Nucleus: DAB OD range": 0.7368037700653076,
+          "Cell: Area \u00b5m^2": 238.95053100585938,
+          "Cell: Length \u00b5m": 60.39558792114258,
+          "Cell: Circularity": 0.8232039213180542,
+          "Cell: Solidity": 0.9612675905227661,
+          "Cell: Hematoxylin OD mean": 0.21082310378551483,
+          "Cell: Hematoxylin OD std dev": 0.1606488823890686,
+          "Cell: Hematoxylin OD max": 0.6973309516906738,
+          "Cell: Hematoxylin OD min": 0.09535473585128784,
+          "Cytoplasm: Hematoxylin OD mean": 0.12610846757888794,
+          "Cell: DAB OD mean": 0.11322186887264252,
+          "Cell: DAB OD std dev": 0.16757488250732422,
+          "Cell: DAB OD max": 0.7526748180389404,
+          "Cell: DAB OD min": 0.015871072188019753,
+          "Cytoplasm: DAB OD mean": 0.05459170415997505,
+          "Nucleus/Cell area ratio": 0.3513779640197754
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cc194288-af4a-4369-a5a9-acb767462938",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11507.96,
+              9476.12
+            ],
+            [
+              11507.96,
+              9498.12
+            ],
+            [
+              11517.96,
+              9512.12
+            ],
+            [
+              11525.96,
+              9510.12
+            ],
+            [
+              11533.97,
+              9504.12
+            ],
+            [
+              11555.97,
+              9502.12
+            ],
+            [
+              11563.97,
+              9498.12
+            ],
+            [
+              11557.97,
+              9466.11
+            ],
+            [
+              11527.96,
+              9456.11
+            ],
+            [
+              11511.96,
+              9466.11
+            ],
+            [
+              11507.96,
+              9476.12
+            ]
+          ]
+        ]
+      },
+      "nucleusGeometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11525.96,
+              9480.12
+            ],
+            [
+              11525.96,
+              9494.12
+            ],
+            [
+              11527.96,
+              9498.12
+            ],
+            [
+              11535.97,
+              9504.12
+            ],
+            [
+              11551.97,
+              9502.12
+            ],
+            [
+              11553.97,
+              9480.12
+            ],
+            [
+              11547.97,
+              9472.11
+            ],
+            [
+              11535.97,
+              9470.11
+            ],
+            [
+              11525.96,
+              9480.12
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "objectType": "cell",
+        "classification": {
+          "name": "Negative",
+          "color": [
+            90,
+            90,
+            180
+          ]
+        },
+        "measurements": {
+          "Nucleus: Area \u00b5m^2": 48.265254974365234,
+          "Nucleus: Length \u00b5m": 25.75282859802246,
+          "Nucleus: Circularity": 0.9145228862762451,
+          "Nucleus: Solidity": 1.0,
+          "Nucleus: Hematoxylin OD mean": 0.3586200773715973,
+          "Nucleus: Hematoxylin OD sum": 79.97227478027344,
+          "Nucleus: Hematoxylin OD std dev": 0.24795091152191162,
+          "Nucleus: Hematoxylin OD max": 0.6992314457893372,
+          "Nucleus: Hematoxylin OD min": 0.06511185318231583,
+          "Nucleus: Hematoxylin OD range": 0.6341195702552795,
+          "Nucleus: DAB OD mean": 0.03852235525846481,
+          "Nucleus: DAB OD sum": 8.590484619140625,
+          "Nucleus: DAB OD std dev": 0.014993886463344097,
+          "Nucleus: DAB OD max": 0.09927941858768463,
+          "Nucleus: DAB OD min": 0.0018135386053472757,
+          "Nucleus: DAB OD range": 0.097465880215168,
+          "Cell: Area \u00b5m^2": 142.42001342773438,
+          "Cell: Length \u00b5m": 45.58334732055664,
+          "Cell: Circularity": 0.8613278865814209,
+          "Cell: Solidity": 0.9751712083816528,
+          "Cell: Hematoxylin OD mean": 0.18384721875190735,
+          "Cell: Hematoxylin OD std dev": 0.19950208067893982,
+          "Cell: Hematoxylin OD max": 0.6992314457893372,
+          "Cell: Hematoxylin OD min": 0.06511185318231583,
+          "Cytoplasm: Hematoxylin OD mean": 0.08416857570409775,
+          "Cell: DAB OD mean": 0.039061181247234344,
+          "Cell: DAB OD std dev": 0.009972271509468555,
+          "Cell: DAB OD max": 0.09927941858768463,
+          "Cell: DAB OD min": 0.0018135386053472757,
+          "Cytoplasm: DAB OD mean": 0.03936849534511566,
+          "Nucleus/Cell area ratio": 0.3631921708583832
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "733b690b-9567-4b76-a171-0276e3be8dc8",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12410.1,
+              8523.96
+            ],
+            [
+              12412.1,
+              8571.97
+            ],
+            [
+              12414.1,
+              8575.97
+            ],
+            [
+              12438.11,
+              8577.97
+            ],
+            [
+              12452.11,
+              8581.97
+            ],
+            [
+              12452.11,
+              8531.97
+            ],
+            [
+              12442.11,
+              8517.96
+            ],
+            [
+              12424.11,
+              8517.96
+            ],
+            [
+              12410.1,
+              8523.96
+            ]
+          ]
+        ]
+      },
+      "nucleusGeometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12420.11,
+              8543.97
+            ],
+            [
+              12420.11,
+              8557.97
+            ],
+            [
+              12430.11,
+              8567.97
+            ],
+            [
+              12440.11,
+              8567.97
+            ],
+            [
+              12448.11,
+              8557.97
+            ],
+            [
+              12448.11,
+              8545.97
+            ],
+            [
+              12440.11,
+              8535.97
+            ],
+            [
+              12428.11,
+              8535.97
+            ],
+            [
+              12420.11,
+              8543.97
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "objectType": "cell",
+        "classification": {
+          "name": "Negative",
+          "color": [
+            90,
+            90,
+            180
+          ]
+        },
+        "measurements": {
+          "Nucleus: Area \u00b5m^2": 45.88950729370117,
+          "Nucleus: Length \u00b5m": 24.770999908447266,
+          "Nucleus: Circularity": 0.9398015141487122,
+          "Nucleus: Solidity": 1.0,
+          "Nucleus: Hematoxylin OD mean": 0.3655841052532196,
+          "Nucleus: Hematoxylin OD sum": 77.86941528320312,
+          "Nucleus: Hematoxylin OD std dev": 0.2438458651304245,
+          "Nucleus: Hematoxylin OD max": 0.7003545165061951,
+          "Nucleus: Hematoxylin OD min": 0.06517744064331055,
+          "Nucleus: Hematoxylin OD range": 0.6351770758628845,
+          "Nucleus: DAB OD mean": 0.03631311282515526,
+          "Nucleus: DAB OD sum": 7.7346930503845215,
+          "Nucleus: DAB OD std dev": 0.011556161567568779,
+          "Nucleus: DAB OD max": 0.06823047995567322,
+          "Nucleus: DAB OD min": 0.004410491790622473,
+          "Nucleus: DAB OD range": 0.0638199895620346,
+          "Cell: Area \u00b5m^2": 146.54632568359375,
+          "Cell: Length \u00b5m": 47.90591812133789,
+          "Cell: Circularity": 0.802428662776947,
+          "Cell: Solidity": 0.9857022762298584,
+          "Cell: Hematoxylin OD mean": 0.1748763471841812,
+          "Cell: Hematoxylin OD std dev": 0.19674326479434967,
+          "Cell: Hematoxylin OD max": 0.7003545165061951,
+          "Cell: Hematoxylin OD min": 0.060506582260131836,
+          "Cytoplasm: Hematoxylin OD mean": 0.07746445387601852,
+          "Cell: DAB OD mean": 0.03643995523452759,
+          "Cell: DAB OD std dev": 0.008094419725239277,
+          "Cell: DAB OD max": 0.06823047995567322,
+          "Cell: DAB OD min": 0.004410491790622473,
+          "Cytoplasm: DAB OD mean": 0.03650474548339844,
+          "Nucleus/Cell area ratio": 0.3380952477455139
+        }
+      }
+    }
+  ]
+}

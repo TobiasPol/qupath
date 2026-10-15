@@ -1,0 +1,91 @@
+[package]
+name = "qupath-rs"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "GPL-3.0-or-later"
+description = "A Rust/egui reimplementation of the core of QuPath, the bioimage analysis platform"
+default-run = "qupath-rs"
+
+[lib]
+name = "qupath"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qupath-rs"
+path = "src/main.rs"
+
+[[bin]]
+name = "make-test-slide"
+path = "src/bin/make_test_slide.rs"
+
+[dependencies]
+# GUI. Pinned to 0.36.1: the fastframe egui fork below is based on it, and an
+# exact pin keeps the whole graph on the patched version.
+eframe = { version = "=0.36.1", default-features = false, features = ["glow", "default_fonts", "accesskit"] }
+egui = "=0.36.1"
+egui_extras = { version = "=0.36.1", features = ["svg"] }
+
+# fastframe: the platform layer (fonts, text rendering, icons, palettes, logs, safe saves).
+fastframe-fonts = { git = "https://github.com/crmne/fastframe", tag = "v0.6.0" }
+fastframe-text = { git = "https://github.com/crmne/fastframe", tag = "v0.6.0" }
+fastframe-icons = { git = "https://github.com/crmne/fastframe", tag = "v0.6.0" }
+fastframe-theme = { git = "https://github.com/crmne/fastframe", tag = "v0.6.0" }
+fastframe-log = { git = "https://github.com/crmne/fastframe", tag = "v0.6.0" }
+fastframe-file = { git = "https://github.com/crmne/fastframe", tag = "v0.6.0" }
+
+# Images and pixels
+jpeg-decoder = "0.3"
+flate2 = "1"
+weezl = "0.2"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "tiff", "bmp", "gif", "webp"] }
+imageproc = { version = "0.27", default-features = false }
+libloading = "0.9"
+zip = { version = "9", default-features = false, features = ["deflate"] }
+
+# Objects and geometry
+geo = "0.33"
+rstar = "0.13"
+slotmap = "1"
+indexmap = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Infrastructure
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+rfd = "0.17"
+rayon = "1"
+crossbeam-channel = "0.5"
+lru = "0.18"
+directories = "6"
+log = "0.4"
+anyhow = "1"
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.dev]
+# Image decoding and geometry are unbearably slow unoptimized.
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+
+# fastframe apps build against these egui/winit forks (see fastframe README).
+# Keep egui and winit revisions moving together.
+[patch.crates-io]
+ecolor = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+eframe = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+egui = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+egui-winit = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+egui_extras = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+egui_glow = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+emath = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+epaint = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+epaint_default_fonts = { git = "https://github.com/crmne/egui", rev = "ba6790fe7cf46e58e8d27ce1524cbfdee745e938" }
+winit = { git = "https://github.com/crmne/winit", rev = "ed7caa9023f10b397f5b6ec8284a840cbd8a6f65" }

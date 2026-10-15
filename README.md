@@ -1,3 +1,9 @@
+> **This is a fork.** Branch [`qupath-rs`](https://github.com/TobiasPol/qupath/tree/qupath-rs)
+> adds [`qupath-rs/`](qupath-rs/), an experimental Rust/[egui](https://www.egui.rs)/[fastframe](https://fastframe.dev)
+> reimplementation of QuPath's interface that reads and writes QuPath projects and GeoJSON.
+> It is written with generative AI, is not affiliated with the QuPath team, and is not
+> intended for upstream (see [AI_POLICY.md](AI_POLICY.md)). Everything else is upstream QuPath, unchanged.
+
 [![Image.sc forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fqupath.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tag/qupath)
 [![Total downloads](https://img.shields.io/github/downloads/qupath/qupath/total?style=flat)](https://github.com/qupath/qupath/releases)
 [![Latest release downloads](https://img.shields.io/github/downloads/qupath/qupath/latest/total?style=flat)](https://github.com/qupath/qupath/releases/latest)
