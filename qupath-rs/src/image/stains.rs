@@ -161,18 +161,18 @@ impl Stains {
         self.od(rgb[0], 0) + self.od(rgb[1], 1) + self.od(rgb[2], 2)
     }
 
-    /// QuPath's script text for these stains.
+    /// QuPath's script line for these stains (`setColorDeconvolutionStains`).
     pub fn script(&self) -> String {
-        let v = |s: &StainVector| format!("\"{}\", \"values\": \"{:.5} {:.5} {:.5}\"", s.name, s.od[0], s.od[1], s.od[2]);
-        format!(
-            "setColorDeconvolutionStains('{{\"Name\" : \"{}\", \"Stain 1\" : {}, \"Stain 2\" : {}, \"Background\" : \" {:.0} {:.0} {:.0}\"}}');",
-            self.name,
-            v(&self.stains[0]),
-            v(&self.stains[1]),
-            self.max_rgb[0],
-            self.max_rgb[1],
-            self.max_rgb[2]
-        )
+        let values = |s: &StainVector| format!("{:.5} {:.5} {:.5}", s.od[0], s.od[1], s.od[2]);
+        let json = serde_json::json!({
+            "Name": self.name,
+            "Stain 1": self.stains[0].name,
+            "Values 1": values(&self.stains[0]),
+            "Stain 2": self.stains[1].name,
+            "Values 2": values(&self.stains[1]),
+            "Background": format!(" {:.0} {:.0} {:.0}", self.max_rgb[0], self.max_rgb[1], self.max_rgb[2]),
+        });
+        format!("{};", crate::io::script::call("setColorDeconvolutionStains", &json.to_string()))
     }
 }
 

@@ -101,32 +101,34 @@ impl CellParams {
             DetectionImage::OpticalDensitySum => "Optical density sum",
             DetectionImage::Channel(_) => "Channel 1",
         };
-        let mut json = format!(
-            r#"{{"detectionImageBrightfield": "{image}", "requestedPixelSizeMicrons": {}, "backgroundRadiusMicrons": {}, "medianRadiusMicrons": 0.0, "sigmaMicrons": {}, "minAreaMicrons": {}, "maxAreaMicrons": {}, "threshold": {}, "maxBackground": {}, "watershedPostProcess": {}, "cellExpansionMicrons": {}, "includeNuclei": true, "smoothBoundaries": {}, "makeMeasurements": {}"#,
-            self.requested_pixel_size,
-            self.background_radius,
-            self.sigma,
-            self.min_area,
-            self.max_area,
-            self.threshold,
-            self.max_background,
-            self.watershed,
-            self.cell_expansion,
-            self.smooth_boundaries,
-            self.make_measurements
-        );
-        let plugin = match &self.positive {
-            Some(p) => {
-                json.push_str(&format!(
-                    r#", "thresholdCompartment": "{}", "thresholdPositive1": {}, "thresholdPositive2": {}, "thresholdPositive3": {}, "singleThreshold": {}"#,
-                    p.compartment, p.thresholds[0], p.thresholds[1], p.thresholds[2], p.single_threshold
-                ));
+        let mut v = serde_json::json!({
+            "detectionImageBrightfield": image,
+            "requestedPixelSizeMicrons": self.requested_pixel_size,
+            "backgroundRadiusMicrons": self.background_radius,
+            "medianRadiusMicrons": 0.0,
+            "sigmaMicrons": self.sigma,
+            "minAreaMicrons": self.min_area,
+            "maxAreaMicrons": self.max_area,
+            "threshold": self.threshold,
+            "maxBackground": self.max_background,
+            "watershedPostProcess": self.watershed,
+            "cellExpansionMicrons": self.cell_expansion,
+            "includeNuclei": true,
+            "smoothBoundaries": self.smooth_boundaries,
+            "makeMeasurements": self.make_measurements,
+        });
+        let plugin = match (&self.positive, v.as_object_mut()) {
+            (Some(p), Some(m)) => {
+                m.insert("thresholdCompartment".into(), p.compartment.clone().into());
+                m.insert("thresholdPositive1".into(), p.thresholds[0].into());
+                m.insert("thresholdPositive2".into(), p.thresholds[1].into());
+                m.insert("thresholdPositive3".into(), p.thresholds[2].into());
+                m.insert("singleThreshold".into(), p.single_threshold.into());
                 "qupath.imagej.detect.cells.PositiveCellDetection"
             }
-            None => "qupath.imagej.detect.cells.WatershedCellDetection",
+            _ => "qupath.imagej.detect.cells.WatershedCellDetection",
         };
-        json.push('}');
-        format!("runPlugin('{plugin}', '{json}')")
+        crate::io::script::run_plugin(plugin, &v)
     }
 }
 

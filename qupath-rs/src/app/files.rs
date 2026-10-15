@@ -210,7 +210,7 @@ impl QuPathApp {
             });
         match result {
             Ok(n) => {
-                data.record("Import objects", format!("importObjectsFromFile('{}')", p.display()));
+                data.record("Import objects", crate::io::script::call("importObjectsFromFile", &p.display().to_string()));
                 self.s.notify(ctx, format!("Imported {n} objects"));
             }
             Err(e) => self.s.error(ctx, format!("Cannot import {}: {e:#}", p.display())),

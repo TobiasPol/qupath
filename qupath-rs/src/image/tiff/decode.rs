@@ -2,7 +2,7 @@
 
 use std::io::Read;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use jpeg_decoder::{ColorTransform, Decoder};
 
 /// What the reader needs to decode one chunk.
@@ -29,10 +29,11 @@ pub fn decompress(raw: &[u8], fmt: &ChunkFormat, width: usize, height: usize) ->
     let expected = width * height * fmt.samples * (usize::from(fmt.bits) / 8);
     let mut out = match fmt.compression {
         1 => raw.to_vec(),
-        5 => weezl::decode::Decoder::with_tiff_size_switch(weezl::BitOrder::Msb, 8).decode(raw).or_else(|_| lzw_partial(raw))?,
+        5 => lzw(raw, expected)?,
         8 | 32946 => {
             let mut v = Vec::with_capacity(expected);
-            flate2::read::ZlibDecoder::new(raw).read_to_end(&mut v)?;
+            // Bounded: a tiny stream can claim to expand to gigabytes.
+            flate2::read::ZlibDecoder::new(raw).take(expected as u64).read_to_end(&mut v)?;
             v
         }
         32773 => packbits(raw, expected),
@@ -46,15 +47,37 @@ pub fn decompress(raw: &[u8], fmt: &ChunkFormat, width: usize, height: usize) ->
     Ok(out)
 }
 
-/// LZW streams are sometimes truncated without an end code; keep what decoded.
-fn lzw_partial(raw: &[u8]) -> Result<Vec<u8>> {
-    let mut out = Vec::new();
+/// Collects output up to a limit, then refuses more (decompression bombs).
+struct Capped {
+    out: Vec<u8>,
+    cap: usize,
+}
+
+impl std::io::Write for Capped {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let room = self.cap.saturating_sub(self.out.len());
+        if room == 0 && !buf.is_empty() {
+            return Err(std::io::Error::other("TIFF chunk decodes to more than expected"));
+        }
+        let n = buf.len().min(room);
+        self.out.extend_from_slice(&buf[..n]);
+        Ok(n)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/// LZW, keeping what decoded when a stream is truncated without an end code,
+/// and never producing more than the chunk can hold.
+fn lzw(raw: &[u8], expected: usize) -> Result<Vec<u8>> {
+    let mut sink = Capped { out: Vec::with_capacity(expected), cap: expected };
     let mut dec = weezl::decode::Decoder::with_tiff_size_switch(weezl::BitOrder::Msb, 8);
-    let r = dec.into_stream(&mut out).decode_all(raw);
-    if out.is_empty() {
+    let r = dec.into_stream(&mut sink).decode_all(raw);
+    if sink.out.is_empty() {
         r.status?;
     }
-    Ok(out)
+    Ok(sink.out)
 }
 
 fn packbits(raw: &[u8], expected: usize) -> Vec<u8> {
@@ -140,6 +163,12 @@ fn decode_jpeg(raw: &[u8], fmt: &ChunkFormat, expected: usize) -> Result<Vec<u8>
     // Aperio and others store unconverted RGB with photometric RGB.
     if !jfif && !adobe && fmt.samples == 3 {
         dec.set_color_transform(if fmt.photometric == 6 { ColorTransform::YCbCr } else { ColorTransform::RGB });
+    }
+    dec.read_info()?;
+    let info = dec.info().context("JPEG without a header")?;
+    let decoded = usize::from(info.width) * usize::from(info.height) * fmt.samples.max(1);
+    if decoded > expected.saturating_mul(4).max(1 << 20) {
+        bail!("JPEG tile of {}×{} does not fit its chunk", info.width, info.height);
     }
     let mut px = dec.decode()?;
     px.resize(expected, 0);

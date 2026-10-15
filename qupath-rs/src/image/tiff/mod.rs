@@ -2,6 +2,8 @@
 
 pub mod decode;
 pub mod ifd;
+mod layout;
+pub mod limits;
 pub mod meta;
 pub mod server;
 pub mod writer;

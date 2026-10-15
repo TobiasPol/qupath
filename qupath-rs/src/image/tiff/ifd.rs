@@ -187,7 +187,10 @@ impl TiffReader {
         let (count, inline) =
             if self.big { (self.u64_from(&e[4..12]), &e[12..20]) } else { (u64::from(self.u32_from(&e[4..8])), &e[8..12]) };
         let size = type_size(typ).context("unknown TIFF type")?;
-        let total = size * count as usize;
+        let total = size
+            .checked_mul(usize::try_from(count).unwrap_or(usize::MAX))
+            .filter(|t| *t <= super::limits::MAX_TAG_BYTES)
+            .context("TIFF tag value too large")?;
         let data = if total <= inline.len() { inline[..total].to_vec() } else { self.read_at(self.offset_of(inline), total)? };
         Ok((t, self.decode_values(typ, count as usize, &data)))
     }

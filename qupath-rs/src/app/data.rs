@@ -144,7 +144,7 @@ impl ImageData {
         self.settings.image_type = t;
         self.settings.stains = Stains::default_for(t);
         self.rebuild_display();
-        self.record("Set image type", format!("setImageType('{}');", t.script_name()));
+        self.record("Set image type", format!("{};", crate::io::script::call("setImageType", t.script_name())));
         if let Some(s) = &self.settings.stains {
             let script = s.script();
             self.record("Set color deconvolution stains", script);

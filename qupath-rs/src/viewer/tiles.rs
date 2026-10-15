@@ -189,7 +189,12 @@ fn worker(rx: &Receiver<Request>, tx: &Sender<(TileKey, anyhow::Result<Tile>)>, 
         }
         let md = req.server.metadata();
         let (tw, th) = (md.tile_width, md.tile_height);
-        let res = req.server.read_level_region(req.key.level, req.key.tx * tw, req.key.ty * th, tw, th);
+        let (key, server) = (req.key, &req.server);
+        // A damaged file must not take the reader thread down with it.
+        let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            server.read_level_region(key.level, key.tx.saturating_mul(tw), key.ty.saturating_mul(th), tw, th)
+        }))
+        .unwrap_or_else(|_| Err(anyhow::anyhow!("tile reader panicked")));
         if tx.send((req.key, res)).is_err() {
             return;
         }

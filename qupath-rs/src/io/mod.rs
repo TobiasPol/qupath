@@ -4,3 +4,4 @@ pub mod geojson;
 pub mod image_data;
 pub mod prefs;
 pub mod project;
+pub mod script;

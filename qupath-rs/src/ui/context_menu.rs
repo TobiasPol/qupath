@@ -63,5 +63,6 @@ pub fn set_class(s: &mut AppState, class: Option<PathClass>) {
         }
     }
     let name = crate::objects::classes::display_name(class.as_ref()).to_owned();
-    d.record("Set classification", format!("getSelectedObjects().each {{ it.setPathClass(getPathClass('{name}')) }}"));
+    let class = crate::io::script::call("getPathClass", &name);
+    d.record("Set classification", format!("getSelectedObjects().each {{ it.setPathClass({class}) }}"));
 }

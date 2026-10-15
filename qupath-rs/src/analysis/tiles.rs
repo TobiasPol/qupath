@@ -26,10 +26,13 @@ impl Default for TileParams {
 impl TileParams {
     /// The equivalent QuPath script line.
     pub fn script(&self) -> String {
-        format!(
-            "runPlugin('qupath.lib.algorithms.TilerPlugin', '{{\"tileSizeMicrons\": {}, \"trimToROI\": {}, \"makeAnnotations\": {}, \"removeParentAnnotation\": false}}')",
-            self.width, self.trim_to_roi, self.make_annotations
-        )
+        let params = serde_json::json!({
+            "tileSizeMicrons": self.width,
+            "trimToROI": self.trim_to_roi,
+            "makeAnnotations": self.make_annotations,
+            "removeParentAnnotation": false,
+        });
+        crate::io::script::run_plugin("qupath.lib.algorithms.TilerPlugin", &params)
     }
 }
 

@@ -8,6 +8,8 @@ use anyhow::{Context, Result, bail};
 
 use super::decode::{ChunkFormat, decompress};
 use super::ifd::{Ifd, TiffReader, tag};
+use super::layout::{layout, read_all_ifds};
+use super::limits;
 use super::meta::{self, DescribedMetadata};
 use crate::image::server::{ImageMetadata, ImageServer, Level, PixelType, Tile, TileData};
 
@@ -25,65 +27,6 @@ pub struct TiffServer {
     metadata: ImageMetadata,
 }
 
-/// The IFDs in the main chain, followed by every SubIFD, with each SubIFD list per main IFD.
-fn read_all_ifds(r: &mut TiffReader, first: u64) -> Result<(Vec<Ifd>, Vec<Vec<usize>>)> {
-    let mut main = Vec::new();
-    let mut off = first;
-    while off != 0 && main.len() < 10_000 {
-        let (ifd, next) = r.read_ifd(off)?;
-        main.push(ifd);
-        off = next;
-    }
-    let n_main = main.len();
-    let mut all = main;
-    let mut subs = vec![Vec::new(); n_main];
-    for (i, sub) in subs.iter_mut().enumerate() {
-        let offsets: Vec<u64> = all[i].ints(tag::SUB_IFDS).map(<[u64]>::to_vec).unwrap_or_default();
-        for o in offsets {
-            let (ifd, _) = r.read_ifd(o)?;
-            sub.push(all.len());
-            all.push(ifd);
-        }
-    }
-    Ok((all, subs))
-}
-
-/// Works out which IFDs make up the pyramid and which are extras.
-fn layout(ifds: &[Ifd], subs: &[Vec<usize>], meta: &DescribedMetadata) -> (Vec<Vec<usize>>, Vec<(String, usize)>) {
-    let n_main = subs.len();
-    if !subs[0].is_empty() {
-        // OME-TIFF: SubIFDs hold the lower resolutions, per plane.
-        let planes: Vec<usize> = (0..meta.ome_channels.unwrap_or(1).min(n_main)).collect();
-        let mut levels = vec![planes.clone()];
-        for l in 0..subs[0].len() {
-            levels.push(planes.iter().filter_map(|p| subs[*p].get(l).copied()).collect());
-        }
-        return (levels, Vec::new());
-    }
-    if let Some(c) = meta.ome_channels.filter(|c| *c <= n_main) {
-        return (vec![(0..c).collect()], Vec::new());
-    }
-    let tiled = ifds[0].is_tiled();
-    let mut levels = vec![vec![0]];
-    let mut assoc = Vec::new();
-    let spp = ifds[0].int(tag::SAMPLES_PER_PIXEL);
-    for i in 1..n_main {
-        let last = &ifds[*levels.last().and_then(|l| l.first()).unwrap_or(&0)];
-        let is_level = ifds[i].is_tiled() == tiled
-            && ifds[i].int(tag::SAMPLES_PER_PIXEL) == spp
-            && ifds[i].width() < last.width()
-            && ifds[i].height() < last.height()
-            && (tiled || ifds[i].int(tag::NEW_SUBFILE_TYPE).unwrap_or(0) & 1 == 1)
-            && !meta::associated_name(&ifds[i], i).starts_with(['l', 'm']);
-        if is_level {
-            levels.push(vec![i]);
-        } else {
-            assoc.push((meta::associated_name(&ifds[i], i), i));
-        }
-    }
-    (levels, assoc)
-}
-
 impl TiffServer {
     /// Opens a TIFF file.
     pub fn open(path: &Path) -> Result<Self> {
@@ -95,6 +38,10 @@ impl TiffServer {
         }
         let described = meta::describe(&ifds[0]);
         let (levels, associated) = layout(&ifds, &subs, &described);
+        for i in levels.iter().flatten() {
+            limits::validate(&ifds[*i])?;
+        }
+        let associated: Vec<_> = associated.into_iter().filter(|(_, i)| limits::validate(&ifds[*i]).is_ok()).collect();
         let metadata = build_metadata(path, &ifds, &levels, &associated, described)?;
         let cache = Mutex::new(lru::LruCache::new(NonZeroUsize::new(256).context("cache size")?));
         Ok(TiffServer { reader: Mutex::new(reader), ifds, levels, associated, little_endian, cache, metadata })
@@ -136,9 +83,12 @@ impl TiffServer {
         let (off, len) = (offsets.context("no offsets")?, counts.context("no byte counts")?);
         let (o, n) = (*off.get(chunk).context("chunk out of range")?, *len.get(chunk).context("chunk out of range")?);
         let (cw, ch, _) = Self::grid(ifd);
-        let rows = if ifd.is_tiled() { ch } else { ch.min(ifd.height() - (chunk as u32 * ch).min(ifd.height())) };
+        let start = (chunk as u64).saturating_mul(u64::from(ch)).min(u64::from(ifd.height()));
+        let rows = if ifd.is_tiled() { ch } else { ch.min((u64::from(ifd.height()) - start) as u32) };
+        let fmt = self.format(ifd);
+        let size = limits::bytes(&[cw as usize, rows as usize, fmt.samples, usize::from(fmt.bits / 8)], limits::MAX_CHUNK_BYTES)?;
         let decoded = if n == 0 {
-            vec![0u8; (cw * rows) as usize * self.format(ifd).samples * (self.format(ifd).bits as usize / 8)]
+            vec![0u8; size]
         } else {
             let raw = self.reader.lock().map_err(|_| anyhow::anyhow!("reader poisoned"))?.read_at(o, n as usize)?;
             decompress(&raw, &self.format(ifd), cw as usize, rows as usize)?
@@ -159,16 +109,16 @@ impl TiffServer {
         let (cw, ch, across) = Self::grid(ifd);
         for cy in (y / ch)..=((y + h - 1) / ch) {
             for cx in (x / cw)..=((x + w - 1) / cw) {
-                let data = self.chunk(ifd_index, (cy * across + cx) as usize)?;
+                let data = self.chunk(ifd_index, cy as usize * across as usize + cx as usize)?;
                 let (ox, oy) = (cx * cw, cy * ch);
                 let (ix0, ix1) = (x.max(ox), (x + w).min(ox + cw));
                 let (iy0, iy1) = (y.max(oy), (y + h).min(oy + ch));
                 for yy in iy0..iy1 {
                     for xx in ix0..ix1 {
-                        let src = (((yy - oy) * cw + (xx - ox)) as usize) * fmt.samples * bps;
-                        let dst = (((yy - y) * w + (xx - x)) as usize * out_channels + c0) * bps;
+                        let src = ((yy - oy) as usize * cw as usize + (xx - ox) as usize) * fmt.samples * bps;
+                        let dst = (((yy - y) as usize * w as usize + (xx - x) as usize) * out_channels + c0) * bps;
                         let n = fmt.samples * bps;
-                        if src + n <= data.len() {
+                        if src + n <= data.len() && dst + n <= out.len() {
                             out[dst..dst + n].copy_from_slice(&data[src..src + n]);
                         }
                     }
@@ -262,7 +212,7 @@ impl ImageServer for TiffServer {
         let spp = self.format(base).samples;
         let channels = spp * planes.len();
         let bps = usize::from(self.format(base).bits / 8);
-        let mut buf = vec![0u8; (w * h) as usize * channels * bps];
+        let mut buf = vec![0u8; limits::bytes(&[w as usize, h as usize, channels, bps], limits::MAX_REGION_BYTES)?];
         for (p, ifd) in planes.iter().enumerate() {
             self.read_plane(*ifd, [x, y, w, h], &mut buf, channels, p * spp)?;
         }
@@ -286,7 +236,8 @@ impl ImageServer for TiffServer {
         let ifd = &self.ifds[*i];
         let fmt = self.format(ifd);
         let (w, h) = (ifd.width(), ifd.height());
-        let mut buf = vec![0u8; (w * h) as usize * fmt.samples * usize::from(fmt.bits / 8)];
+        let mut buf =
+            vec![0u8; limits::bytes(&[w as usize, h as usize, fmt.samples, usize::from(fmt.bits / 8)], limits::MAX_REGION_BYTES)?];
         self.read_plane(*i, [0, 0, w, h], &mut buf, fmt.samples, 0)?;
         let t = Tile { width: w, height: h, channels: fmt.samples, data: TileData::U8(buf) };
         let rgba: Vec<u8> = t.to_rgb8().as_chunks::<3>().0.iter().flat_map(|p| [p[0], p[1], p[2], 255]).collect();

@@ -158,13 +158,11 @@ fn write_tiles(out: &mut Out, src: &dyn PixelSource, opts: &WriteOptions, l: &Le
 
 fn level_entries(opts: &WriteOptions, l: &LevelSpec, reduced: bool, offsets: &[u64], counts: &[u64]) -> Vec<Entry> {
     let jpeg = matches!(opts.compression, Compression::Jpeg(_));
-    let photometric = match (l.channels, jpeg) {
-        (3, true) => 6,
-        (3, false) => 2,
-        _ => 1,
-    };
+    // RGB even for JPEG: each tile is a JFIF stream that says it holds YCbCr, and
+    // Bio-Formats converts JFIF to RGB and then again when Photometric says YCbCr.
+    let photometric = if l.channels == 3 { 2 } else { 1 };
     let ts = opts.tile_size as u16;
-    let mut e = vec![
+    let e = vec![
         Entry(tag::NEW_SUBFILE_TYPE, 4, 1, u32::from(reduced).to_le_bytes().to_vec()),
         Entry(tag::IMAGE_WIDTH, 4, 1, l.w.to_le_bytes().to_vec()),
         Entry(tag::IMAGE_LENGTH, 4, 1, l.h.to_le_bytes().to_vec()),
@@ -179,10 +177,6 @@ fn level_entries(opts: &WriteOptions, l: &LevelSpec, reduced: bool, offsets: &[u
         longs8(tag::TILE_OFFSETS, offsets),
         longs8(tag::TILE_BYTE_COUNTS, counts),
     ];
-    if photometric == 6 {
-        // image's JPEG encoder does not subsample chroma (4:4:4).
-        e.push(shorts(tag::YCBCR_SUBSAMPLING, &[1, 1]));
-    }
     e
 }
 
