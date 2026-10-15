@@ -13,8 +13,16 @@ pub const MAX_TILE: u32 = 1 << 16;
 pub const MAX_CHUNK_BYTES: usize = 512 << 20;
 /// Largest region read in one call.
 pub const MAX_REGION_BYTES: usize = 2 << 30;
-/// Largest tag value read from the file.
-pub const MAX_TAG_BYTES: usize = 256 << 20;
+/// Largest tag value read from the file, measured as decoded (8 bytes per number).
+pub const MAX_TAG_BYTES: usize = 64 << 20;
+/// Decoded tag data allowed for the whole file (all directories together).
+pub const MAX_FILE_TAG_BYTES: usize = 256 << 20;
+/// Directories allowed in a file, SubIFDs included.
+pub const MAX_IFDS: usize = 4096;
+/// Largest JPEGTables tag (real tables are a few hundred bytes).
+pub const MAX_JPEG_TABLES: usize = 64 << 10;
+/// Decoded chunks kept in memory per open image.
+pub const CHUNK_CACHE_BYTES: usize = 256 << 20;
 
 /// Product of sizes, failing instead of overflowing or exceeding `limit`.
 pub fn bytes(factors: &[usize], limit: usize) -> Result<usize> {

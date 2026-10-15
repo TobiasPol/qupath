@@ -26,18 +26,18 @@ pub struct ChunkFormat {
 
 /// Decompresses one chunk to interleaved samples (bytes; multi-byte samples in file order).
 pub fn decompress(raw: &[u8], fmt: &ChunkFormat, width: usize, height: usize) -> Result<Vec<u8>> {
-    let expected = width * height * fmt.samples * (usize::from(fmt.bits) / 8);
+    let expected = super::limits::bytes(&[width, height, fmt.samples, usize::from(fmt.bits / 8)], super::limits::MAX_CHUNK_BYTES)?;
     let mut out = match fmt.compression {
         1 => raw.to_vec(),
         5 => lzw(raw, expected)?,
         8 | 32946 => {
-            let mut v = Vec::with_capacity(expected);
-            // Bounded: a tiny stream can claim to expand to gigabytes.
+            // Bounded, and grown as data arrives: a tiny stream can claim gigabytes.
+            let mut v = Vec::new();
             flate2::read::ZlibDecoder::new(raw).take(expected as u64).read_to_end(&mut v)?;
             v
         }
         32773 => packbits(raw, expected),
-        7 | 6 => return decode_jpeg(raw, fmt, expected),
+        7 | 6 => return decode_jpeg(raw, fmt, (width, height), expected),
         c => bail!("unsupported TIFF compression {c} (try OpenSlide for this file)"),
     };
     out.resize(expected, 0);
@@ -71,7 +71,7 @@ impl std::io::Write for Capped {
 /// LZW, keeping what decoded when a stream is truncated without an end code,
 /// and never producing more than the chunk can hold.
 fn lzw(raw: &[u8], expected: usize) -> Result<Vec<u8>> {
-    let mut sink = Capped { out: Vec::with_capacity(expected), cap: expected };
+    let mut sink = Capped { out: Vec::new(), cap: expected };
     let mut dec = weezl::decode::Decoder::with_tiff_size_switch(weezl::BitOrder::Msb, 8);
     let r = dec.into_stream(&mut sink).decode_all(raw);
     if sink.out.is_empty() {
@@ -81,7 +81,7 @@ fn lzw(raw: &[u8], expected: usize) -> Result<Vec<u8>> {
 }
 
 fn packbits(raw: &[u8], expected: usize) -> Vec<u8> {
-    let mut out = Vec::with_capacity(expected);
+    let mut out = Vec::with_capacity(expected.min(raw.len().saturating_mul(64)));
     let mut i = 0;
     while i < raw.len() && out.len() < expected {
         let n = raw[i] as i8;
@@ -155,8 +155,12 @@ fn color_markers(data: &[u8]) -> (bool, bool) {
     (jfif, adobe)
 }
 
-fn decode_jpeg(raw: &[u8], fmt: &ChunkFormat, expected: usize) -> Result<Vec<u8>> {
-    let data = with_tables(raw, fmt.jpeg_tables.as_deref());
+fn decode_jpeg(raw: &[u8], fmt: &ChunkFormat, (width, height): (usize, usize), expected: usize) -> Result<Vec<u8>> {
+    let tables = fmt.jpeg_tables.as_deref().filter(|t| t.len() <= super::limits::MAX_JPEG_TABLES);
+    if fmt.jpeg_tables.is_some() && tables.is_none() {
+        bail!("JPEG tables larger than {} bytes", super::limits::MAX_JPEG_TABLES);
+    }
+    let data = with_tables(raw, tables);
     let mut dec = Decoder::new(data.as_slice());
     let (jfif, adobe) = color_markers(&data);
     // Without JFIF or Adobe markers, the TIFF photometric says what the samples are:
@@ -166,9 +170,9 @@ fn decode_jpeg(raw: &[u8], fmt: &ChunkFormat, expected: usize) -> Result<Vec<u8>
     }
     dec.read_info()?;
     let info = dec.info().context("JPEG without a header")?;
-    let decoded = usize::from(info.width) * usize::from(info.height) * fmt.samples.max(1);
-    if decoded > expected.saturating_mul(4).max(1 << 20) {
-        bail!("JPEG tile of {}×{} does not fit its chunk", info.width, info.height);
+    // The JPEG must be the tile (allowing for padding to whole 16-pixel blocks).
+    if usize::from(info.width) > width + 16 || usize::from(info.height) > height + 16 {
+        bail!("JPEG of {}×{} does not fit its {width}×{height} chunk", info.width, info.height);
     }
     let mut px = dec.decode()?;
     px.resize(expected, 0);

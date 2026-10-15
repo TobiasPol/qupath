@@ -9,7 +9,7 @@ use super::meta::{self, DescribedMetadata};
 pub fn read_all_ifds(r: &mut TiffReader, first: u64) -> Result<(Vec<Ifd>, Vec<Vec<usize>>)> {
     let mut main = Vec::new();
     let mut off = first;
-    while off != 0 && main.len() < 10_000 {
+    while off != 0 && main.len() < super::limits::MAX_IFDS {
         let (ifd, next) = r.read_ifd(off)?;
         main.push(ifd);
         off = next;
@@ -20,6 +20,9 @@ pub fn read_all_ifds(r: &mut TiffReader, first: u64) -> Result<(Vec<Ifd>, Vec<Ve
     for (i, sub) in subs.iter_mut().enumerate() {
         let offsets: Vec<u64> = all[i].ints(tag::SUB_IFDS).map(<[u64]>::to_vec).unwrap_or_default();
         for o in offsets {
+            if all.len() >= super::limits::MAX_IFDS {
+                anyhow::bail!("TIFF has more than {} directories", super::limits::MAX_IFDS);
+            }
             let (ifd, _) = r.read_ifd(o)?;
             sub.push(all.len());
             all.push(ifd);

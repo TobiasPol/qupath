@@ -1,6 +1,5 @@
 //! A pure-Rust reader for pyramidal TIFF: SVS, OME-TIFF and generic tiled TIFF.
 
-use std::num::NonZeroUsize;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
@@ -13,7 +12,32 @@ use super::limits;
 use super::meta::{self, DescribedMetadata};
 use crate::image::server::{ImageMetadata, ImageServer, Level, PixelType, Tile, TileData};
 
-type ChunkCache = lru::LruCache<(usize, usize), Arc<Vec<u8>>>;
+/// Decoded chunks, bounded by their total size (not their count).
+struct ChunkCache {
+    lru: lru::LruCache<(usize, usize), Arc<Vec<u8>>>,
+    bytes: usize,
+}
+
+impl ChunkCache {
+    fn new() -> Self {
+        ChunkCache { lru: lru::LruCache::unbounded(), bytes: 0 }
+    }
+
+    fn get(&mut self, k: &(usize, usize)) -> Option<Arc<Vec<u8>>> {
+        self.lru.get(k).cloned()
+    }
+
+    fn put(&mut self, k: (usize, usize), v: Arc<Vec<u8>>) {
+        self.bytes += v.len();
+        if let Some(old) = self.lru.put(k, v) {
+            self.bytes -= old.len();
+        }
+        while self.bytes > limits::CHUNK_CACHE_BYTES {
+            let Some((_, old)) = self.lru.pop_lru() else { break };
+            self.bytes -= old.len();
+        }
+    }
+}
 
 /// Serves pixels from a TIFF file.
 pub struct TiffServer {
@@ -43,7 +67,7 @@ impl TiffServer {
         }
         let associated: Vec<_> = associated.into_iter().filter(|(_, i)| limits::validate(&ifds[*i]).is_ok()).collect();
         let metadata = build_metadata(path, &ifds, &levels, &associated, described)?;
-        let cache = Mutex::new(lru::LruCache::new(NonZeroUsize::new(256).context("cache size")?));
+        let cache = Mutex::new(ChunkCache::new());
         Ok(TiffServer { reader: Mutex::new(reader), ifds, levels, associated, little_endian, cache, metadata })
     }
 
@@ -71,7 +95,7 @@ impl TiffServer {
 
     /// Decoded bytes of one chunk, cached.
     fn chunk(&self, ifd_index: usize, chunk: usize) -> Result<Arc<Vec<u8>>> {
-        if let Some(c) = self.cache.lock().ok().and_then(|mut c| c.get(&(ifd_index, chunk)).cloned()) {
+        if let Some(c) = self.cache.lock().ok().and_then(|mut c| c.get(&(ifd_index, chunk))) {
             return Ok(c);
         }
         let ifd = &self.ifds[ifd_index];

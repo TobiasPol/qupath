@@ -96,3 +96,19 @@ fn jpeg_tiles_are_tagged_rgb_for_bio_formats() {
     let px = t.to_rgb8();
     assert!(px.iter().zip([214u8, 208, 220]).all(|(a, b)| a.abs_diff(b) <= 3), "{px:?}");
 }
+
+#[test]
+fn self_referencing_subifds_are_bounded() {
+    // IFD0 lists 5000 SubIFDs, all pointing back at IFD0 itself.
+    let n = 5000u32;
+    let entries: [(u16, u16, u32, u32); 3] = [(tag::IMAGE_WIDTH, 4, 1, 64), (tag::IMAGE_LENGTH, 4, 1, 64), (tag::SUB_IFDS, 4, n, 0)];
+    let ifd_len = 2 + entries.len() as u32 * 12 + 4;
+    let data_at = 8 + ifd_len;
+    let mut b = tiff(&entries.map(|e| if e.0 == tag::SUB_IFDS { (e.0, e.1, e.2, data_at) } else { e }));
+    for _ in 0..n {
+        b.extend_from_slice(&8u32.to_le_bytes());
+    }
+    let started = std::time::Instant::now();
+    assert!(open(&b).is_err(), "too many directories must be refused");
+    assert!(started.elapsed().as_secs() < 10, "refused promptly");
+}

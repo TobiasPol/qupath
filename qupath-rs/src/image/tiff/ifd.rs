@@ -111,6 +111,8 @@ pub struct TiffReader {
     little: bool,
     /// Whether this is a BigTIFF.
     pub big: bool,
+    /// Decoded tag bytes still allowed for this file.
+    tag_budget: usize,
 }
 
 impl TiffReader {
@@ -124,7 +126,7 @@ impl TiffReader {
             b"MM" => false,
             _ => bail!("not a TIFF file"),
         };
-        let mut r = TiffReader { file, little, big: false };
+        let mut r = TiffReader { file, little, big: false, tag_budget: super::limits::MAX_FILE_TAG_BYTES };
         let magic = r.u16_from(&hdr[2..4]);
         let first = match magic {
             42 => u64::from(r.u32_from(&hdr[4..8])),
@@ -187,12 +189,17 @@ impl TiffReader {
         let (count, inline) =
             if self.big { (self.u64_from(&e[4..12]), &e[12..20]) } else { (u64::from(self.u32_from(&e[4..8])), &e[8..12]) };
         let size = type_size(typ).context("unknown TIFF type")?;
-        let total = size
-            .checked_mul(usize::try_from(count).unwrap_or(usize::MAX))
-            .filter(|t| *t <= super::limits::MAX_TAG_BYTES)
-            .context("TIFF tag value too large")?;
+        let count = usize::try_from(count).unwrap_or(usize::MAX);
+        let total = size.checked_mul(count).context("TIFF tag value too large")?;
+        // Numbers are held as 8-byte values whatever their size on disk, so charge
+        // what they take in memory, against both this tag and the whole file.
+        let held = if matches!(typ, 2 | 7) { total } else { count.saturating_mul(8) };
+        if held > super::limits::MAX_TAG_BYTES || held > self.tag_budget {
+            bail!("TIFF tag data exceeds the reader's limits");
+        }
+        self.tag_budget -= held;
         let data = if total <= inline.len() { inline[..total].to_vec() } else { self.read_at(self.offset_of(inline), total)? };
-        Ok((t, self.decode_values(typ, count as usize, &data)))
+        Ok((t, self.decode_values(typ, count, &data)))
     }
 
     fn offset_of(&self, inline: &[u8]) -> u64 {
