@@ -20,6 +20,22 @@ It reads QuPath's file formats, so the two applications can share work:
 - **Images.** It reads SVS, OME-TIFF and tiled TIFF in pure Rust. Vendor formats (NDPI, MRXS, SCN, BIF, VMS…) go through OpenSlide, which is loaded at runtime from Homebrew, from `QUPATH_RS_OPENSLIDE`, or straight out of an installed QuPath app. It writes pyramidal OME-TIFF that Bio-Formats and QuPath read.
 - **Scripts.** Every command records the equivalent QuPath Groovy line in the Workflow tab, e.g. `runPlugin('qupath.imagej.detect.cells.PositiveCellDetection', '{…}')`.
 
+## How fast is it?
+
+Measured against QuPath 0.7.0 on the same slide with the same settings
+(Apple M1 Pro), both apps find the same cells (within 0.5%):
+
+| | QuPath 0.7.0 | qupath-rs | |
+| --- | ---: | ---: | --- |
+| Detect 8,000 cells | 6 s | 0.5 s | **~12× faster** |
+| Open a slide | 75 ms | 3 ms | **~25× faster** |
+| Read image tiles | 1.7 s | 0.6 s | **3× faster** |
+| Save / load 8,000 cells (GeoJSON) | 1.1 s | 0.2 s | **5–7× faster** |
+| App size | 261 MB | 15 MB | **17× smaller** |
+| Memory | 1.5 GB | 0.9 GB | **~40% less** |
+
+Method, raw numbers and caveats are in [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
 ## Features
 
 | Area | What works |
