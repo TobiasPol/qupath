@@ -18,6 +18,7 @@
 * Ask to remove projects that are not found (https://github.com/qupath/qupath/pull/2167)
 * Hold down `Ctrl` (`Cmd` on macOS) when clicking viewer to focus it without creating an annotation with the brush, wand or points tool (https://github.com/qupath/qupath/pull/2185)
 * The 'Auto set' classification for new annotations can be changed from the popup menu in the viewer (https://github.com/qupath/qupath/pull/2186)
+* *File → Export images... → Rendered RGB (with overlays)...* and *Rendered SVG...* now use viewer z and t positions when exporting 2D images
 
 ### Bug fixes
 * StackOverflowError at ROITypeAdapters.writeCoordinates when exporting some geometries (https://github.com/qupath/qupath/issues/2115)
@@ -31,6 +32,7 @@
 * The image overview doesn't rescale for very 'tall' images (https://github.com/qupath/qupath/issues/2163)
 * Export snapshot on Linux fails if the extension is not part of the filename (https://github.com/qupath/qupath/issues/2181)
 * Training object classifier for intensity class results in `Positive: Positive` or `Negative: Negative` (https://github.com/qupath/qupath/issues/2200)
+* ImageOps morphological filters (maximum, minimum, opening, closing) are not thread-safe (https://github.com/qupath/qupath/issues/2202)
 
 ### Dependency updates
 * Bio-Formats 8.5.0
