@@ -1,0 +1,86 @@
+name: qupath-rs release
+
+# Push a tag like `qupath-rs-v0.1.0` to build qupath-rs and draft a GitHub release.
+# Run it manually to build the downloads without drafting a release.
+on:
+  push:
+    tags: ["qupath-rs-v*"]
+  workflow_dispatch:
+
+concurrency: qupath-rs-release-${{ github.ref }}
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-14
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - name: Linux
+            os: ubuntu-24.04
+          - name: Windows
+            os: windows-2022
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: qupath-rs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          targets: ${{ matrix.targets }}
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: qupath-rs
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev libx11-dev libgl1-mesa-dev
+      - name: Package
+        run: |
+          VERSION=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          mkdir -p ../release
+          case "$RUNNER_OS" in
+            macOS)
+              scripts/bundle-macos.sh --universal
+              ditto -c -k --keepParent dist/QuPath-rs.app "../release/QuPath-rs-$VERSION-macOS-universal.zip"
+              ;;
+            Linux)
+              cargo build --release --bin qupath-rs
+              tar -czf "../release/QuPath-rs-$VERSION-linux-x86_64.tar.gz" -C target/release qupath-rs
+              ;;
+            Windows)
+              cargo build --release --bin qupath-rs
+              7z a "../release/QuPath-rs-$VERSION-windows-x86_64.zip" ./target/release/qupath-rs.exe
+              ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qupath-rs-${{ matrix.name }}
+          path: release/*
+
+  release:
+    name: Draft release
+    needs: build
+    # Draft with whatever built, so one failing platform doesn't block the others.
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/qupath-rs-v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          pattern: qupath-rs-*
+          path: release
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* --repo "$GITHUB_REPOSITORY" \
+            --draft --generate-notes --title "QuPath-rs ${GITHUB_REF_NAME#qupath-rs-v}"
