@@ -37,6 +37,75 @@ To **build QuPath from source** see [here](https://qupath.readthedocs.io/en/stab
 *The software has been made freely available under the terms of the [GPLv3](https://github.com/qupath/qupath/blob/main/LICENSE) in the hope it is useful for this purpose, and to make analysis methods open and transparent.*
 
 
+## Installation
+
+### Install a release
+
+Download the installer for your platform from the [Latest Releases](https://github.com/qupath/qupath/releases/latest) page and follow the [installation guide](https://qupath.readthedocs.io/en/stable/docs/intro/installation.html).
+
+### Build QuPath from source
+
+You need [Git](https://git-scm.com) and a Java Development Kit (JDK 17 or later) to run Gradle.
+QuPath itself is built with JDK 25 (see [`gradle/libs.versions.toml`](gradle/libs.versions.toml)); if it isn't installed, Gradle downloads it automatically.
+
+On macOS, you can install everything you need for both apps with [Homebrew](https://brew.sh) (QuPath itself isn't available as a Homebrew package):
+
+```bash
+brew install git rust openslide
+brew install --cask temurin@25
+```
+
+```bash
+git clone https://github.com/TobiasPol/qupath.git
+cd qupath
+./gradlew clean build      # compile and run tests
+./gradlew run              # start QuPath
+```
+
+On Windows, use `gradlew.bat` instead of `./gradlew`.
+
+To create a standalone app in `build/dist/`:
+
+```bash
+./gradlew clean jpackage                       # app image (default)
+./gradlew clean jpackage -Ppackage=installer   # native installer (.pkg / .msi / .deb)
+```
+
+See [TECHNICAL_NOTES.md](TECHNICAL_NOTES.md) and the [building docs](https://qupath.readthedocs.io/en/stable/docs/reference/building.html) for more options, including running from an IDE.
+
+### Download qupath-rs (experimental)
+
+Download the build for your platform from this fork's [Releases](https://github.com/TobiasPol/qupath/releases) page (releases tagged `qupath-rs-v…`):
+
+| Platform | File | How to run |
+| --- | --- | --- |
+| macOS (Apple Silicon & Intel) | `QuPath-rs-<version>-macOS-universal.zip` | Unzip and move `QuPath-rs.app` to Applications |
+| Linux (x86_64) | `QuPath-rs-<version>-linux-x86_64.tar.gz` | Extract and run `./qupath-rs` |
+| Windows (x86_64) | `QuPath-rs-<version>-windows-x86_64.zip` | Extract and run `qupath-rs.exe` |
+
+The builds are not notarised or code-signed with a developer certificate, so your OS will warn you the first time:
+
+* **macOS**: open the app once, then choose *Open Anyway* in System Settings › Privacy & Security, or run `xattr -dr com.apple.quarantine /Applications/QuPath-rs.app`
+* **Windows**: in the SmartScreen prompt, choose *More info* › *Run anyway*
+
+Only the macOS build is tested regularly. Vendor formats (NDPI, MRXS, …) need OpenSlide installed separately (`brew install openslide` on macOS, `apt install libopenslide1` on Debian/Ubuntu).
+
+To publish a new release, push a tag such as `qupath-rs-v0.1.0`. The [release workflow](.github/workflows/qupath-rs-release.yml) builds all three platforms and drafts a GitHub release for you to review and publish.
+
+### Build qupath-rs from source
+
+The Rust app in [`qupath-rs/`](qupath-rs/) needs [Rust](https://rustup.rs) 1.98 or later.
+
+```bash
+cd qupath-rs
+cargo run --release -- path/to/slide.svs   # the argument is optional
+```
+
+On macOS, `scripts/bundle-macos.sh` builds `dist/QuPath-rs.app`.
+Vendor formats (NDPI, MRXS, …) need OpenSlide (`brew install openslide`).
+See [qupath-rs/README.md](qupath-rs/README.md) for details.
+
+
 ## Development & support
 
 QuPath is being actively developed at the University of Edinburgh by:

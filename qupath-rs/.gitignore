@@ -29,3 +29,6 @@ Thumbs.db
 # Generated test slides (large)
 *.ome.tif
 !tests/fixtures/*.ome.tif
+
+# The root .gitignore ignores bin/ (Eclipse output); Cargo binaries live here
+!src/bin/
