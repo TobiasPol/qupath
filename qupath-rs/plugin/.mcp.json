@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "qupath": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/qupath-rs-mcp",
+      "args": [],
+      "env": { "RUST_LOG": "warn,qupath=info" }
+    }
+  }
+}

@@ -60,6 +60,7 @@ lru = "0.18"
 directories = "6"
 log = "0.4"
 anyhow = "1"
+base64 = "0.22"
 thiserror = "2"
 
 [dev-dependencies]

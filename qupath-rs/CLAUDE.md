@@ -18,6 +18,7 @@ palettes, logging and atomic saves.
 
 ## Commands
 - `cargo run --release -- [image|project.qpproj|objects.geojson]`: start the app
+- `cargo run --release -- mcp`: MCP server on stdio for AI agents (no window)
 - `cargo build --release`: build
 - `cargo test --release`: run the tests
 - `cargo clippy --all-targets -- -D warnings`: lint
@@ -34,6 +35,9 @@ palettes, logging and atomic saves.
 - `src/viewer/`: transform, tile manager (worker threads + LRU + textures), rendering, overlays, decorations, tools (`tools/`)
 - `src/app/`: app state, command table (menus, shortcuts and command list all derive from it), dispatch, files, objects, dialogs, export, tasks, automation
 - `src/ui/`: style (fastframe theme/fonts), icons, analysis pane tabs, tool windows, dialogs
+- `src/agent/`: headless `Session` (one image + project) and the agent tools (`tools/`: name, JSON Schema, effect, run fn); `render.rs` draws regions with object overlays as PNG
+- `src/mcp.rs`: hand-written MCP stdio server (JSON-RPC, both `server/discover` 2026-07-28 and `initialize` handshakes) over `agent::tools`
+- `plugin/`: the agent plugin (Claude Code, Agent Plugins/Codex, Cursor, Gemini manifests, launcher, `qupath-analysis` skill); marketplaces at the repo root (`.claude-plugin/`, `.agents/plugins/`)
 - `docs/ARCHITECTURE.md`: details and the QuPath parity table
 
 Conventions:
@@ -41,8 +45,10 @@ Conventions:
 - Every hierarchy change takes an undo checkpoint and records a workflow step with the equivalent QuPath script line.
 - Keep measurement names identical to QuPath's (`Nucleus: Area µm^2`, `Num Positive`, …).
 - Verify UI changes with `QUPATH_RS_AUTOMATION` screenshots (see `src/app/automation.rs`).
+- Agent tools: add a `const` `Tool` in `src/agent/tools/<area>.rs` and list it in that file's `tools()`. Edit/Delete tools are saved to the project automatically. Errors should say what to call next. Keep plugin docs (`plugin/README.md`, the skill) in step. In MCP mode stdout is the protocol channel, so never print to stdout.
 
 ## Environment Variables
 - `RUST_LOG`: log filter
 - `QUPATH_RS_OPENSLIDE`: path to libopenslide
 - `QUPATH_RS_AUTOMATION`: scripted UI steps for screenshots
+- `QUPATH_RS_BIN`: binary used by the plugin launcher (`plugin/scripts/qupath-rs-mcp`)

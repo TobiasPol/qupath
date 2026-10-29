@@ -1,6 +1,7 @@
 > **This is a fork.** It adds [`qupath-rs/`](qupath-rs/), an experimental Rust/[egui](https://www.egui.rs)/[fastframe](https://fastframe.dev)
 > reimplementation of QuPath's interface that reads and writes QuPath projects and GeoJSON.
 > In benchmarks it detects cells about 12× faster than QuPath 0.7.0, with the same results.
+> AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) can drive it through its MCP plugin; see [AI agents](#ai-agents-qupath-rs-for-claude-code-codex--co).
 > It is written with generative AI, is not affiliated with the QuPath team, and is not
 > intended for upstream (see [AI_POLICY.md](AI_POLICY.md)). Everything else is upstream QuPath, unchanged.
 
@@ -104,6 +105,51 @@ cargo run --release -- path/to/slide.svs   # the argument is optional
 On macOS, `scripts/bundle-macos.sh` builds `dist/QuPath-rs.app`.
 Vendor formats (NDPI, MRXS, …) need OpenSlide (`brew install openslide`).
 See [qupath-rs/README.md](qupath-rs/README.md) for details.
+
+
+## AI agents: qupath-rs for Claude Code, Codex & co.
+
+qupath-rs has a built-in [Model Context Protocol](https://modelcontextprotocol.io) server, `qupath-rs mcp`, and a plugin for Claude Code, Codex, Cursor and Gemini CLI. You describe an analysis in plain words, and the agent can:
+
+* open whole-slide images and QuPath projects, and look at regions as images with the objects drawn on top
+* detect tissue, draw annotations, and run QuPath's cell and positive cell detection
+* read measurements with QuPath's column names, and export GeoJSON, CSV, or a Groovy script that reruns the analysis in QuPath
+
+The agent saves its work as an ordinary QuPath project, so you can review every annotation and cell in QuPath 0.7 or the qupath-rs GUI.
+
+**Setup**
+
+1. Install the qupath-rs binary: [download a release](#download-qupath-rs-experimental) or [build it from source](#build-qupath-rs-from-source).
+2. Add the plugin to your agent.
+
+   Claude Code:
+
+   ```bash
+   /plugin install qupath-rs --marketplace TobiasPol/qupath
+   ```
+
+   Codex:
+
+   ```bash
+   codex plugin marketplace add TobiasPol/qupath
+   ```
+
+   ```bash
+   codex plugin add qupath-rs@qupath-rs
+   ```
+
+   For Cursor, Gemini CLI and other MCP clients (VS Code, Windsurf, Claude Desktop…), see the [plugin README](qupath-rs/plugin/README.md).
+
+**Example request**
+
+> Create a project in ~/analysis/ki67, add the slides in ~/slides, detect the tissue on each one, quantify Ki-67 positive cells and give me a table of positive % per slide.
+
+The plugin's [`qupath-analysis` skill](qupath-rs/plugin/skills/qupath-analysis/SKILL.md) teaches the agent the workflow and how to tune the parameters. It also has the agent check its detections visually before reporting.
+
+Notes:
+
+* Results come from qupath-rs's port of QuPath's algorithms. They are for research use only, not for diagnosis.
+* Exports never overwrite existing files unless the agent is explicitly asked to.
 
 
 ## Development & support
