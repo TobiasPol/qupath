@@ -5,9 +5,10 @@ use indexmap::IndexMap;
 use serde_json::{Value, json};
 
 use super::objects::filtered;
-use super::{Effect, Output, Tool, ids_property, schema};
+use super::{Effect, Output, Tool, ids_property, output_path, overwrite_property, path_property, schema};
 use crate::agent::args;
 use crate::agent::session::Session;
+use crate::io::script::comment;
 use crate::objects::measurements::{self, Value as Cell};
 
 pub(super) fn tools() -> Vec<Tool> {
@@ -43,9 +44,13 @@ const EXPORT_MEASUREMENTS: Tool = Tool {
     schema: || {
         let kind = json!({ "type": "string", "enum": ["annotation", "detection", "cell", "tile", "all"] });
         let sep = json!({ "type": "string", "enum": ["tab", "comma"], "description": "Default tab (comma when the path ends in .csv)" });
-        schema(json!({ "path": { "type": "string" }, "kind": kind, "class": { "type": "string" }, "separator": sep }), &["path"])
+        let props = json!({
+            "path": path_property(".tsv or .csv file"), "kind": kind, "class": { "type": "string" }, "separator": sep,
+            "overwrite": overwrite_property(),
+        });
+        schema(props, &["path"])
     },
-    effect: Effect::Files,
+    effect: Effect::Export,
     run: export,
 };
 
@@ -54,8 +59,8 @@ const EXPORT_SCRIPT: Tool = Tool {
     title: "Export QuPath script",
     description: "The commands run on this image as a QuPath Groovy script (QuPath's Workflow), so the analysis can be rerun in \
                   QuPath on other images. Returns the script; writes it too when path is given.",
-    schema: || schema(json!({ "path": { "type": "string", "description": "Optional .groovy file" } }), &[]),
-    effect: Effect::Files,
+    schema: || schema(json!({ "path": path_property("Optional .groovy file"), "overwrite": overwrite_property() }), &[]),
+    effect: Effect::Export,
     run: script,
 };
 
@@ -113,25 +118,25 @@ fn summarize(cols: &[String], rows: &[IndexMap<String, Cell>]) -> Value {
 }
 
 fn export(s: &mut Session, a: &Value) -> Result<Output> {
-    let path = args::text(a, "path")?;
+    let path = output_path(a)?;
     let comma = match args::opt_str(a, "separator") {
         Some(sep) => sep == "comma",
-        None => path.to_ascii_lowercase().ends_with(".csv"),
+        None => path.extension().is_some_and(|e| e.eq_ignore_ascii_case("csv")),
     };
     let (cols, rows) = rows(s, a)?;
     let text = measurements::to_tsv(&cols, &rows, if comma { ',' } else { '\t' });
-    fastframe_file::write(std::path::Path::new(path), text.into_bytes())?;
+    fastframe_file::write(&path, text.into_bytes())?;
     Ok(json!({ "path": path, "rows": rows.len(), "columns": cols.len() }).into())
 }
 
 fn script(s: &mut Session, a: &Value) -> Result<Output> {
     let img = s.image()?;
-    let mut text = format!("// QuPath script recorded by qupath-rs for {}\n", img.server.metadata().name);
+    let mut text = format!("// QuPath script recorded by qupath-rs for {}\n", comment(&img.server.metadata().name));
     for step in &img.settings.workflow {
-        text.push_str(&format!("\n// {}\n{}\n", step.name, step.script));
+        text.push_str(&format!("\n// {}\n{}\n", comment(&step.name), step.script));
     }
-    if let Some(path) = args::opt_str(a, "path") {
-        fastframe_file::write(std::path::Path::new(path), text.clone().into_bytes())?;
+    if a.get("path").is_some() {
+        fastframe_file::write(&output_path(a)?, text.clone().into_bytes())?;
     }
     Ok(json!({ "steps": img.settings.workflow.len(), "script": text }).into())
 }

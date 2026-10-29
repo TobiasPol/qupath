@@ -37,8 +37,10 @@ pub enum Effect {
     Edit,
     /// Removes objects.
     Delete,
-    /// Writes files or changes what is open.
+    /// Changes what is open, or writes inside the project.
     Files,
+    /// Writes a file the caller names (replacing one only with `overwrite: true`).
+    Export,
 }
 
 /// One tool.
@@ -89,6 +91,25 @@ pub fn call(session: &mut Session, name: &str, args: &Value) -> Result<Output> {
 /// A JSON Schema object with these properties and required names.
 fn schema(properties: Value, required: &[&str]) -> Value {
     json!({ "type": "object", "properties": properties, "required": required, "additionalProperties": false })
+}
+
+/// The output path of an export tool; an existing file is replaced only with `overwrite: true`.
+fn output_path(a: &Value) -> Result<std::path::PathBuf> {
+    let path = std::path::PathBuf::from(super::args::text(a, "path")?);
+    if path.exists() && !super::args::bool_or(a, "overwrite", false) {
+        bail!("{} already exists; pass overwrite: true to replace it, or choose another path", path.display());
+    }
+    Ok(path)
+}
+
+/// The `path` property of export tools.
+fn path_property(path: &str) -> Value {
+    json!({ "type": "string", "description": path })
+}
+
+/// The `overwrite` flag of export tools.
+fn overwrite_property() -> Value {
+    json!({ "type": "boolean", "description": "Replace the file if it exists (default false)" })
 }
 
 /// The `ids` property most object tools take.

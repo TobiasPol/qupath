@@ -14,6 +14,7 @@ The `qupath` MCP server (from `qupath-rs mcp`) keeps one image open at a time, o
 - **Objects** are referred to by `id` (a UUID). Get ids from `list_objects`, or from the result of the tool that created the object.
 - **Work in a project** (`create_project` + `add_images`, or `open_project`). Every edit to a project image is saved straight away, and the user can open the same project in QuPath 0.7 or the qupath-rs GUI. For an image outside a project, edits stay in memory until `export_geojson`.
 - **Look before and after.** Call `view_image` (the whole slide by default) before you choose regions, and again on a small region (about 500–1000 px) after detection to check the result. If a detection is wrong, adjust its parameters and rerun it: `detect_cells` replaces the detections inside the parent annotation.
+- Export tools (`export_geojson`, `export_measurements`, `export_script`) do not replace existing files unless you pass `overwrite: true`. Pass it only when the user wants that file replaced.
 - Tool errors explain what to do next (for example, "no image is open: call open_image"). Follow them rather than retrying unchanged.
 
 ## Standard workflow

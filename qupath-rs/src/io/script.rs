@@ -28,6 +28,11 @@ pub fn run_plugin(class: &str, params: &Value) -> String {
     format!("runPlugin({}, {})", groovy_str(class), groovy_str(&params.to_string()))
 }
 
+/// Text for a `//` comment: one line, so names from files cannot end the comment and add code.
+pub fn comment(s: &str) -> String {
+    s.chars().map(|c| if c.is_control() || matches!(c, '\u{2028}' | '\u{2029}') { ' ' } else { c }).collect()
+}
+
 /// `name(arg)` with one string argument.
 pub fn call(name: &str, arg: &str) -> String {
     format!("{name}({})", groovy_str(arg))
@@ -45,6 +50,13 @@ mod tests {
         // Every quote inside is escaped, so only the outer two remain unescaped.
         let unescaped = s.match_indices('\'').filter(|(i, _)| *i == 0 || !s[..*i].ends_with('\\')).count();
         assert_eq!(unescaped, 2);
+    }
+
+    #[test]
+    fn comments_stay_on_one_line() {
+        let c = comment("a.svs\nnew File('/x').delete()\r\u{2028}");
+        assert!(!c.contains(['\n', '\r', '\u{2028}']));
+        assert!(c.starts_with("a.svs new File"));
     }
 
     #[test]

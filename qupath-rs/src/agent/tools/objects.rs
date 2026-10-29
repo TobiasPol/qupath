@@ -1,11 +1,9 @@
 //! Objects: add annotations, list, delete, classify and rename, GeoJSON import/export.
 
-use std::path::Path;
-
 use anyhow::{Context, Result, bail};
 use serde_json::{Value, json};
 
-use super::{Effect, Output, Tool, ids_property, schema};
+use super::{Effect, Output, Tool, ids_property, output_path, overwrite_property, path_property, schema};
 use crate::agent::args::{self, bounds_json, round};
 use crate::agent::session::{OpenImage, Session};
 use crate::io::script::groovy_str;
@@ -91,9 +89,13 @@ const EXPORT_GEOJSON: Tool = Tool {
     description: "Write objects as QuPath-flavoured GeoJSON (QuPath's File › Import objects reads it). Default: every object, nested.",
     schema: || {
         let kind = json!({ "type": "string", "enum": ["annotation", "detection", "cell", "tile", "all"] });
-        schema(json!({ "path": { "type": "string" }, "kind": kind, "ids": ids_property("Only these objects") }), &["path"])
+        let props = json!({
+            "path": path_property(".geojson file"), "kind": kind, "ids": ids_property("Only these objects"),
+            "overwrite": overwrite_property(),
+        });
+        schema(props, &["path"])
     },
-    effect: Effect::Files,
+    effect: Effect::Export,
     run: export,
 };
 
@@ -242,7 +244,7 @@ fn export(s: &mut Session, a: &Value) -> Result<Output> {
         _ => (h.children(h.root()).to_vec(), true),
     };
     let v = crate::io::geojson::export(h, &keys, nested);
-    let path = Path::new(args::text(a, "path")?);
-    fastframe_file::write(path, serde_json::to_vec(&v)?)?;
+    let path = output_path(a)?;
+    fastframe_file::write(&path, serde_json::to_vec(&v)?)?;
     Ok(json!({ "path": path, "features": keys.len(), "nested_children": nested }).into())
 }

@@ -130,7 +130,7 @@ pub fn list_tools() -> Vec<Value> {
             let annotations = json!({
                 "title": t.title,
                 "readOnlyHint": t.effect == Effect::Read,
-                "destructiveHint": t.effect == Effect::Delete,
+                "destructiveHint": matches!(t.effect, Effect::Delete | Effect::Export),
                 "idempotentHint": t.effect == Effect::Read,
                 "openWorldHint": false,
             });

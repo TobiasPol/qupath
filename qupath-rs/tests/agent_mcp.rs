@@ -131,4 +131,21 @@ fn project_workflow_detects_cells_and_persists() {
     assert!(script["script"].as_str().is_some_and(|t| t.contains("PositiveCellDetection")));
     let removed = ok(&mut fresh, "delete_objects", json!({ "kind": "cell" }));
     assert_eq!(removed["removed"].as_u64(), Some(cells));
+
+    // Exports never replace a file unless asked to.
+    let out = dir.path().join("objects.geojson");
+    ok(&mut fresh, "export_geojson", json!({ "path": out }));
+    let (msg, _, error) = call(&mut fresh, "export_geojson", json!({ "path": out }));
+    assert!(error && msg.as_str().is_some_and(|m| m.contains("overwrite")), "{msg}");
+    ok(&mut fresh, "export_geojson", json!({ "path": out, "overwrite": true }));
+}
+
+#[test]
+fn file_writing_tools_are_marked_destructive() {
+    let tools = mcp::list_tools();
+    let hint = |name: &str| tools.iter().find(|t| t["name"] == name).expect(name)["annotations"]["destructiveHint"].clone();
+    for name in ["export_geojson", "export_measurements", "export_script", "delete_objects"] {
+        assert_eq!(hint(name), true, "{name}");
+    }
+    assert_eq!(hint("view_image"), false);
 }
