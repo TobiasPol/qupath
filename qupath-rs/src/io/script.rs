@@ -29,8 +29,15 @@ pub fn run_plugin(class: &str, params: &Value) -> String {
 }
 
 /// Text for a `//` comment: one line, so names from files cannot end the comment and add code.
+/// Backslashes go too, because Groovy decodes `\u000a` escapes before it parses comments.
 pub fn comment(s: &str) -> String {
-    s.chars().map(|c| if c.is_control() || matches!(c, '\u{2028}' | '\u{2029}') { ' ' } else { c }).collect()
+    s.chars()
+        .map(|c| match c {
+            '\\' => '/',
+            c if c.is_control() || matches!(c, '\u{2028}' | '\u{2029}') => ' ',
+            c => c,
+        })
+        .collect()
 }
 
 /// `name(arg)` with one string argument.
@@ -57,6 +64,8 @@ mod tests {
         let c = comment("a.svs\nnew File('/x').delete()\r\u{2028}");
         assert!(!c.contains(['\n', '\r', '\u{2028}']));
         assert!(c.starts_with("a.svs new File"));
+        let escaped = comment("a\\u000a new File('/x').delete()");
+        assert!(!escaped.contains('\\'), "{escaped}");
     }
 
     #[test]

@@ -58,7 +58,8 @@ const EXPORT_SCRIPT: Tool = Tool {
     name: "export_script",
     title: "Export QuPath script",
     description: "The commands run on this image as a QuPath Groovy script (QuPath's Workflow), so the analysis can be rerun in \
-                  QuPath on other images. Returns the script; writes it too when path is given.",
+                  QuPath on other images. Steps saved with a project image are included as stored, so review them before running a \
+                  script from a project you did not make. Returns the script; writes it too when path is given.",
     schema: || schema(json!({ "path": path_property("Optional .groovy file"), "overwrite": overwrite_property() }), &[]),
     effect: Effect::Export,
     run: script,
