@@ -85,9 +85,24 @@ This writes a 24000×18000 px pyramidal OME-TIFF of procedural H-DAB tissue
 (0.25 µm/px). It has a known nucleus spacing and a 30% DAB-positive fraction,
 so detection results can be checked against ground truth.
 
+## AI coding agents (MCP)
+
+`qupath-rs mcp` serves qupath-rs's analysis tools over the [Model Context Protocol](https://modelcontextprotocol.io) on stdio, with no window. Agents such as Claude Code, Codex, Cursor and Gemini CLI can then:
+
+- open images and projects, and view regions with their objects drawn on top;
+- annotate regions, detect tissue and (positive) cells, and read measurements;
+- export GeoJSON, CSV or a QuPath script.
+
+Their edits are saved into the project, so the GUI and QuPath open the results. The plugin, with its install steps for each harness and its workflow skill, is in [plugin/](plugin/README.md).
+
+```bash
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | cargo run --release -- mcp
+```
+
 ## Commands
 
 - `cargo run --release`: start the app
+- `cargo run --release -- mcp`: run the MCP server on stdio (for AI agents)
 - `cargo build --release`: build
 - `cargo test --release`: run the tests
 - `cargo clippy --all-targets -- -D warnings`: lint

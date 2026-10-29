@@ -1,0 +1,13 @@
+{
+  "name": "qupath-rs",
+  "version": "0.1.0",
+  "description": "Whole-slide image analysis: open slides and QuPath projects, annotate, detect and classify cells, measure and export to QuPath.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "qupath": {
+      "command": "sh",
+      "args": ["${extensionPath}${/}scripts${/}qupath-rs-mcp"],
+      "cwd": "${extensionPath}"
+    }
+  }
+}

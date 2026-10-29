@@ -105,6 +105,16 @@ On macOS, `scripts/bundle-macos.sh` builds `dist/QuPath-rs.app`.
 Vendor formats (NDPI, MRXS, …) need OpenSlide (`brew install openslide`).
 See [qupath-rs/README.md](qupath-rs/README.md) for details.
 
+### Use qupath-rs from an AI coding agent
+
+qupath-rs includes an MCP server (`qupath-rs mcp`) and a plugin for Claude Code, Codex, Cursor and Gemini CLI. With them, an agent can open slides, detect tissue and cells, and report measurements. It saves its work as a QuPath project. In Claude Code:
+
+```bash
+/plugin install qupath-rs --marketplace TobiasPol/qupath
+```
+
+See [qupath-rs/plugin/README.md](qupath-rs/plugin/README.md) for Codex, Cursor, Gemini CLI and other MCP clients.
+
 
 ## Development & support
 

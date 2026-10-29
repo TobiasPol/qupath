@@ -22,7 +22,25 @@ fn start_logging() -> Option<PathBuf> {
     file
 }
 
+/// `qupath-rs mcp`: serve the agent tools over stdio instead of opening a window.
+fn serve_mcp() -> ! {
+    start_logging();
+    qupath::image::openslide::preload();
+    let stdin = std::io::stdin().lock();
+    let code = match qupath::mcp::serve(stdin, std::io::stdout().lock()) {
+        Ok(()) => 0,
+        Err(e) => {
+            log::error!("MCP server stopped: {e:#}");
+            1
+        }
+    };
+    std::process::exit(code)
+}
+
 fn main() -> eframe::Result {
+    if std::env::args().nth(1).as_deref() == Some("mcp") {
+        serve_mcp();
+    }
     let log_file = start_logging();
     qupath::image::openslide::preload();
     let prefs = Prefs::load();

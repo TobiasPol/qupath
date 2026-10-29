@@ -1,0 +1,40 @@
+#!/bin/sh
+# Starts the qupath-rs MCP server (`qupath-rs mcp`) for AI coding agents.
+# Finds the binary in this order:
+#   1. $QUPATH_RS_BIN
+#   2. qupath-rs on PATH
+#   3. usual install folders (cargo install, Homebrew, ~/.local/bin), which agents
+#      started from a GUI often leave off PATH
+#   4. QuPath-rs.app in /Applications or ~/Applications (macOS)
+#   5. a build in the qupath-rs checkout this plugin lives in (target/release, then target/debug);
+#      installed plugins are copied to a cache, so this only helps when run from the checkout
+set -eu
+
+here="$(cd "$(dirname "$0")" && pwd)"
+checkout="$(cd "$here/../.." 2>/dev/null && pwd || true)"
+
+for candidate in \
+  "${QUPATH_RS_BIN:-}" \
+  "$(command -v qupath-rs 2>/dev/null || true)" \
+  "$HOME/.cargo/bin/qupath-rs" \
+  "/opt/homebrew/bin/qupath-rs" \
+  "/usr/local/bin/qupath-rs" \
+  "$HOME/.local/bin/qupath-rs" \
+  "/Applications/QuPath-rs.app/Contents/MacOS/qupath-rs" \
+  "$HOME/Applications/QuPath-rs.app/Contents/MacOS/qupath-rs" \
+  "$checkout/target/release/qupath-rs" \
+  "$checkout/target/debug/qupath-rs"; do
+  if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+    exec "$candidate" mcp "$@"
+  fi
+done
+
+cat >&2 <<'MSG'
+qupath-rs MCP: cannot find the qupath-rs binary.
+Install it, then restart your agent:
+  - download a release from https://github.com/TobiasPol/qupath/releases (tags qupath-rs-v*)
+    and put qupath-rs on your PATH (macOS: move QuPath-rs.app to /Applications), or
+  - build it: cd qupath-rs && cargo install --path . --bin qupath-rs
+Or point QUPATH_RS_BIN at the binary.
+MSG
+exit 127

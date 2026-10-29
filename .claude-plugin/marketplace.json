@@ -1,0 +1,14 @@
+{
+  "name": "qupath-rs",
+  "owner": { "name": "Tobias Polley", "url": "https://github.com/TobiasPol" },
+  "description": "qupath-rs plugins for AI coding agents: whole-slide image analysis with QuPath's core, rebuilt in Rust.",
+  "plugins": [
+    {
+      "name": "qupath-rs",
+      "source": "./qupath-rs/plugin",
+      "description": "Open slides and QuPath projects, look at regions, annotate, detect and classify cells, measure and export to QuPath.",
+      "category": "science",
+      "keywords": ["qupath", "digital-pathology", "whole-slide-imaging", "mcp"]
+    }
+  ]
+}

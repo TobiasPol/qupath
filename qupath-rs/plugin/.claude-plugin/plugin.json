@@ -1,0 +1,11 @@
+{
+  "name": "qupath-rs",
+  "displayName": "QuPath (qupath-rs)",
+  "version": "0.1.0",
+  "description": "Whole-slide image analysis for AI coding agents: open slides and QuPath projects, look at regions, annotate, detect and classify cells, measure and export to QuPath.",
+  "author": { "name": "Tobias Polley", "url": "https://github.com/TobiasPol" },
+  "homepage": "https://github.com/TobiasPol/qupath/tree/main/qupath-rs/plugin",
+  "repository": "https://github.com/TobiasPol/qupath",
+  "license": "GPL-3.0-or-later",
+  "keywords": ["qupath", "digital-pathology", "whole-slide-imaging", "bioimage-analysis", "cell-detection", "mcp"]
+}
