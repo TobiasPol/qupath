@@ -12,6 +12,8 @@ If the tools are missing, ask the user to install the binary in one of these way
 - Download a release from <https://github.com/TobiasPol/qupath/releases> (tags `qupath-rs-v*`).
 - Build it: `cd qupath-rs && cargo install --path . --bin qupath-rs`. This needs Rust 1.98 or later.
 
+A `qupath-rs` built before the MCP server existed opens the QuPath window instead of serving tools, so the launcher skips binaries without the server and says so. Update such a binary the same way.
+
 Then restart the agent session. Vendor formats (NDPI, MRXS, SCN…) also need OpenSlide (`brew install openslide`), or set `QUPATH_RS_OPENSLIDE`.
 
 To check the server by hand, this should print one JSON line listing the tools:

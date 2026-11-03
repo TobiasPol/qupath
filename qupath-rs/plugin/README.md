@@ -32,6 +32,8 @@ The launcher looks for the binary in this order:
 4. `QuPath-rs.app`
 5. the checkout's `target/release`
 
+It skips binaries built before the MCP server existed, because those open the QuPath window instead of serving tools. If the only one it finds is too old, it says so: update that binary.
+
 Vendor formats (NDPI, MRXS…) also need OpenSlide (`brew install openslide`).
 
 ## 2. Add the plugin to your agent

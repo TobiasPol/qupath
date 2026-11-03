@@ -19,6 +19,7 @@ use crate::agent::tools::{self, Effect, Output};
 pub const VERSIONS: &[&str] = &["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 /// The newest version that still uses the `initialize` handshake.
 const HANDSHAKE_VERSION: &str = "2025-11-25";
+/// The plugin launchers search binaries for this string to skip builds without the MCP server.
 const VERSION_META: &str = "io.modelcontextprotocol/protocolVersion";
 const UNSUPPORTED_VERSION: i64 = -32022;
 
