@@ -15,7 +15,7 @@ exit /b %ERRORLEVEL%
 
 :missing
 if defined STALE (
-  echo qupath-rs MCP: %STALE% is too old: it has no MCP server. Download a newer release from https://github.com/TobiasPol/qupath/releases or rebuild with: cargo install --path . --bin qupath-rs 1>&2
+  echo qupath-rs MCP: "%STALE%" is too old: it has no MCP server. Download a newer release from https://github.com/TobiasPol/qupath/releases or rebuild with: cargo install --path . --bin qupath-rs 1>&2
 ) else (
   echo qupath-rs MCP: cannot find qupath-rs.exe. Download it from https://github.com/TobiasPol/qupath/releases, put it on PATH or set QUPATH_RS_BIN. 1>&2
 )
